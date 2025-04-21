@@ -25,3 +25,10 @@ jobs:
 
     - name: Run tests
       run: mvn test
+
+    - name: Deploy to Tomcat
+      if: success()  # Only runs if build and tests pass
+      run: |
+        curl -v -u ${{ secrets.TOMCAT_USER }}:${{ secrets.TOMCAT_PASSWORD }} \
+        -T target/YOUR_PROJECT.war \
+        "http://${{ secrets.TOMCAT_HOST }}:8080/manager/text/deploy?path=/YOUR_PROJECT&update=true"
