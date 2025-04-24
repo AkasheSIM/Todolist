@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 2  # Job timeout to prevent hanging
 
     steps:
     - uses: actions/checkout@v4
@@ -29,6 +30,7 @@ jobs:
     - name: Deploy to Tomcat
       if: success()
       run: |
-        curl -v -u ${{ secrets.TOMCAT_USER }}:${{ secrets.TOMCAT_PASSWORD }} \
+        curl --connect-timeout 10 --max-time 30 -v \
+        -u ${{ secrets.TOMCAT_USER }}:${{ secrets.TOMCAT_PASSWORD }} \
         -T target/todo-app.war \
         "http://${{ secrets.TOMCAT_HOST }}:8081/manager/text/deploy?path=/todo-app&update=true"
