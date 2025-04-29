@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  WAR_FILE_NAME: todo-app.war  # Matches finalName in pom.xml
+  WAR_FILE_NAME: todo-app.war
   JENKINS_JOB_NAME: todo-app-deploy
 
 jobs:
@@ -17,10 +17,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4.1.1
     
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -41,7 +41,7 @@ jobs:
         echo "WAR file successfully built"
       
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: todo-app-artifact
         path: target/$WAR_FILE_NAME
@@ -53,7 +53,7 @@ jobs:
     
     steps:
     - name: Download artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4.1.1
       with:
         name: todo-app-artifact
         
@@ -66,7 +66,7 @@ jobs:
         echo "Artifact verified successfully"
         
     - name: Trigger Jenkins Deployment
-      uses: appleboy/jenkins-action@master
+      uses: appleboy/jenkins-action@v1.0.7
       with:
         url: "${{ secrets.JENKINS_URL }}"
         user: "${{ secrets.JENKINS_USER }}"
