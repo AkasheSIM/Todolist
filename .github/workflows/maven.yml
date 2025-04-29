@@ -1,36 +1,78 @@
-name: TODO APP
+name: Spring Boot Todo App CI/CD Pipeline
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
+env:
+  WAR_FILE_NAME: todo-app.war  # Matches finalName in pom.xml
+  JENKINS_JOB_NAME: todo-app-deploy
+
 jobs:
-  build:
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
-    timeout-minutes: 2  # Job timeout to prevent hanging
 
     steps:
-    - uses: actions/checkout@v4
-
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
     - name: Set up JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: maven
-
+        cache: 'maven'
+    
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
-
-    - name: Run tests
+      run: mvn -B clean package
+      
+    - name: Run Tests
       run: mvn test
-
-    - name: Deploy to Tomcat
-      if: success()
+      
+    - name: Verify WAR file exists
       run: |
-        curl --connect-timeout 10 --max-time 30 -v \
-        -u ${{ secrets.TOMCAT_USER }}:${{ secrets.TOMCAT_PASSWORD }} \
-        -T target/todo-app.war \
-        "http://${{ secrets.TOMCAT_HOST }}:8081/manager/text/deploy?path=/todo-app&update=true"
+        if [ ! -f target/$WAR_FILE_NAME ]; then
+          echo "::error::WAR file not found at target/$WAR_FILE_NAME"
+          exit 1
+        fi
+        echo "WAR file successfully built"
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: todo-app-artifact
+        path: target/$WAR_FILE_NAME
+        
+  deploy:
+    name: Trigger Deployment
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: todo-app-artifact
+        
+    - name: Verify artifact
+      run: |
+        if [ ! -f $WAR_FILE_NAME ]; then
+          echo "::error::Artifact download failed"
+          exit 1
+        fi
+        echo "Artifact verified successfully"
+        
+    - name: Trigger Jenkins Deployment
+      uses: appleboy/jenkins-action@master
+      with:
+        url: "${{ secrets.JENKINS_URL }}"
+        user: "${{ secrets.JENKINS_USER }}"
+        password: "${{ secrets.JENKINS_API_TOKEN }}"
+        job: "${{ env.JENKINS_JOB_NAME }}"
+        parameters: |
+          GITHUB_RUN_ID=${{ github.run_id }}
+          WAR_FILE_NAME=${{ env.WAR_FILE_NAME }}
+      timeout-minutes: 5
