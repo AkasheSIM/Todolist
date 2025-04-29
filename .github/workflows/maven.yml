@@ -65,14 +65,6 @@ jobs:
         fi
         echo "Artifact verified successfully"
         
-    - name: Trigger Jenkins Deployment
-      uses: appleboy/jenkins-action@v1.0.7
-      with:
-        url: "${{ secrets.JENKINS_URL }}"
-        user: "${{ secrets.JENKINS_USER }}"
-        password: "${{ secrets.JENKINS_API_TOKEN }}"
-        job: "${{ env.JENKINS_JOB_NAME }}"
-        parameters: |
-          GITHUB_RUN_ID=${{ github.run_id }}
-          WAR_FILE_NAME=${{ env.WAR_FILE_NAME }}
-      timeout-minutes: 5
+    - name: Trigger Jenkins via remote token
+      run: |
+        curl -X POST "${{ secrets.JENKINS_URL }}/job/Devops%20Project/build?token=${{ secrets.JENKINS_TRIGGER_TOKEN }}"
