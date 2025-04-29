@@ -34,8 +34,8 @@ jobs:
       
     - name: Verify WAR file exists
       run: |
-        if [ ! -f target/$WAR_FILE_NAME ]; then
-          echo "::error::WAR file not found at target/$WAR_FILE_NAME"
+        if [ ! -f target/${{ env.WAR_FILE_NAME }} ]; then
+          echo "::error::WAR file not found at target/${{ env.WAR_FILE_NAME }}"
           exit 1
         fi
         echo "WAR file successfully built"
@@ -44,7 +44,7 @@ jobs:
       uses: actions/upload-artifact@v4.3.1
       with:
         name: todo-app-artifact
-        path: target/$WAR_FILE_NAME
+        path: target/${{ env.WAR_FILE_NAME }}
         
   deploy:
     name: Trigger Deployment
@@ -59,7 +59,7 @@ jobs:
         
     - name: Verify artifact
       run: |
-        if [ ! -f $WAR_FILE_NAME ]; then
+        if [ ! -f ${{ env.WAR_FILE_NAME }} ]; then
           echo "::error::Artifact download failed"
           exit 1
         fi
