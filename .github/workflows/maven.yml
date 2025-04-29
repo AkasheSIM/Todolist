@@ -67,4 +67,4 @@ jobs:
         
     - name: Trigger Jenkins via remote token
       run: |
-        curl -X POST "${{ secrets.JENKINS_URL }}/job/Devops%20Project/build?token=${{ secrets.JENKINS_TRIGGER_TOKEN }}"
+        curl -X POST "${{ secrets.JENKINS_URL }}/job/${{ env.JENKINS_JOB_NAME }}/build?token=${{ secrets.JENKINS_TRIGGER_TOKEN }}"
