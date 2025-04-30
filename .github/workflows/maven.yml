@@ -49,7 +49,6 @@ jobs:
   deploy:
     name: Trigger Deployment
     needs: build-and-test
-    # <-- Switch to your self-hosted runner here:
     runs-on: [self-hosted]
 
     steps:
@@ -59,6 +58,7 @@ jobs:
           name: todo-app-artifact
           
       - name: Verify artifact
+        shell: bash
         run: |
           if [ ! -f ${{ env.WAR_FILE_NAME }} ]; then
             echo "::error::Artifact download failed"
@@ -67,6 +67,7 @@ jobs:
           echo "Artifact verified successfully"
           
       - name: Trigger Jenkins via remote token
+        shell: bash
         run: |
           curl -X POST \
             "${{ secrets.JENKINS_URL }}/job/${{ env.JENKINS_JOB_NAME }}/build?token=${{ secrets.JENKINS_TRIGGER_TOKEN }}"
